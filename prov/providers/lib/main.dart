@@ -16,17 +16,17 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.purple,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: EmployeeListPage(),
+      home: SkinListPage(),
     );
   }
 }
 
-class EmployeeListPage extends StatefulWidget {
+class SkinListPage extends StatefulWidget {
   @override
-  _EmployeeListPageState createState() => _EmployeeListPageState();
+  _SkinListPageState createState() => _SkinListPageState();
 }
 
-class _EmployeeListPageState extends State<EmployeeListPage> {
+class _SkinListPageState extends State<SkinListPage> {
   late List<Skin> skins = []; 
 
   Future<void> fetchSkins() async {
@@ -106,7 +106,6 @@ class SkinCard extends StatelessWidget {
     );
   }
 }
-
 
 class Skin {
   final String name;

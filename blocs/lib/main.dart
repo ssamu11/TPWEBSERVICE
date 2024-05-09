@@ -1,13 +1,6 @@
 import 'package:flutter/material.dart';
-
-// Model untuk representasi data skin
-class Skin {
-  final String name;
-  final int price;
-  final String imageUrl;
-
-  Skin({required this.name, required this.price, required this.imageUrl});
-}
+import 'package:blocs/skin_bloc.dart';
+import 'package:blocs/skin.dart';
 
 void main() {
   runApp(MyApp());
@@ -28,14 +21,19 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class SkinListPage extends StatelessWidget {
-  // Dummy data skins
-  final List<Skin> skins = [
-    Skin(name: "AK-47 | Redline", price: 5000, imageUrl: "assets/images/howl.png"),
-    Skin(name: "AWP | Dragon Lore", price: 6000, imageUrl: "assets/images/howl.png"),
-    Skin(name: "M4A4 | Howl", price: 5500, imageUrl: "assets/images/howl.png"),
-    // Add more skins if needed
-  ];
+class SkinListPage extends StatefulWidget {
+  @override
+  _SkinListPageState createState() => _SkinListPageState();
+}
+
+class _SkinListPageState extends State<SkinListPage> {
+  final SkinBloc _skinBloc = SkinBloc();
+
+  @override
+  void initState() {
+    super.initState();
+    _skinBloc.fetchAllSkins();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,20 +42,42 @@ class SkinListPage extends StatelessWidget {
         title: Text('List Skins'),
         backgroundColor: Colors.purple[200],
       ),
-      body: GridView.builder(
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-        ),
-        itemCount: skins.length,
-        itemBuilder: (context, index) {
-          final skin = skins[index];
-          return SkinCard(skin: skin);
+      body: StreamBuilder<List<Skin>>(
+        stream: _skinBloc.allSkins,
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return GridView.builder(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+              ),
+              itemCount: snapshot.data!.length,
+              itemBuilder: (context, index) {
+                final skin = snapshot.data![index];
+                // Menampilkan detail skin menggunakan SkinCard
+                return SkinCard(skin: skin); // Menggunakan SkinCard di sini
+              },
+            );
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Text("${snapshot.error}"),
+            );
+          }
+          return Center(
+            child: CircularProgressIndicator(),
+          );
         },
       ),
     );
   }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _skinBloc.dispose();
+  }
 }
 
+// SkinCard didefinisikan di sini
 class SkinCard extends StatelessWidget {
   final Skin skin;
 
@@ -70,8 +90,8 @@ class SkinCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Image.network(
-            skin.imageUrl,
+          Image.asset(
+            '../assets/images/${skin.imageUrl}',
             width: double.infinity,
             height: 150,
             fit: BoxFit.cover,
