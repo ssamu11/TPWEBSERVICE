@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => SkinProvider(),
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -20,31 +26,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class EmployeeListPage extends StatefulWidget {
-  @override
-  _EmployeeListPageState createState() => _EmployeeListPageState();
-}
-
-class _EmployeeListPageState extends State<EmployeeListPage> {
-  late List<Skin> skins = []; // Initialize skins as an empty list
-
-  Future<void> fetchSkins() async {
-    final response = await http.get(Uri.parse('http://localhost:8000/skins/'));
-    if (response.statusCode == 200) {
-      setState(() {
-        skins = List<Skin>.from(json.decode(response.body).map((x) => Skin.fromJson(x)));
-      });
-    } else {
-      throw Exception('Failed to load skins');
-    }
-  }
-
-  @override
-  void initState() {
-    fetchSkins();
-    super.initState();
-  }
-
+class EmployeeListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -52,18 +34,24 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
         title: Text('List skin'),
         backgroundColor: Colors.purple[200],
       ),
-      body: skins.isEmpty // Check if skins is empty before accessing it
-          ? Center(child: CircularProgressIndicator())
-          : GridView.builder(
+      body: Consumer<SkinProvider>(
+        builder: (context, skinProvider, _) {
+          if (skinProvider.skins.isEmpty) {
+            return Center(child: CircularProgressIndicator());
+          } else {
+            return GridView.builder(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
               ),
-              itemCount: skins.length,
+              itemCount: skinProvider.skins.length,
               itemBuilder: (context, index) {
-                final skin = skins[index];
+                final skin = skinProvider.skins[index];
                 return SkinCard(skin: skin);
               },
-            ),
+            );
+          }
+        },
+      ),
     );
   }
 }
@@ -106,6 +94,21 @@ class SkinCard extends StatelessWidget {
   }
 }
 
+class SkinProvider with ChangeNotifier {
+  late List<Skin> _skins = [];
+
+  List<Skin> get skins => _skins;
+
+  Future<void> fetchSkins() async {
+    final response = await http.get(Uri.parse('http://localhost:8000/skins/'));
+    if (response.statusCode == 200) {
+      _skins = List<Skin>.from(json.decode(response.body).map((x) => Skin.fromJson(x)));
+      notifyListeners();
+    } else {
+      throw Exception('Failed to load skins');
+    }
+  }
+}
 
 class Skin {
   final String name;
