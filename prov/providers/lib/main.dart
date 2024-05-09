@@ -80,8 +80,8 @@ class SkinCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Image.network(
-            skin.image_url,
+          Image.asset(
+            '../assets/images/${skin.image_url}',
             width: double.infinity,
             height: 150,
             fit: BoxFit.cover,
@@ -105,6 +105,7 @@ class SkinCard extends StatelessWidget {
     );
   }
 }
+
 
 class Skin {
   final String name;
