@@ -1,11 +1,11 @@
 import 'dart:convert';
-import 'dart:async'; // Import untuk StreamController
+import 'dart:async'; // Import for StreamController
 import 'package:http/http.dart' as http;
 import 'package:blocs/skin.dart';
 
 class SkinBloc {
-  StreamController<List<Skin>> _skinsController = StreamController<List<Skin>>();
-  
+  final StreamController<List<Skin>> _skinsController = StreamController<List<Skin>>.broadcast();
+
   Stream<List<Skin>> get allSkins => _skinsController.stream;
 
   fetchAllSkins() async {
@@ -17,14 +17,14 @@ class SkinBloc {
             .toList();
         _skinsController.sink.add(skins);
       } else {
-        throw Exception('Failed to load skins');
+        throw Exception('Failed to load skins with status code ${response.statusCode}');
       }
     } catch (e) {
-      _skinsController.addError(e); // Mengirim error ke stream
+      _skinsController.addError('HAHAHAHAHA: $e'); // Sending error to the stream
     }
   }
 
-  dispose() {
+  void dispose() {
     _skinsController.close();
   }
 }
